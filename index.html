@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="ASICS V16 — RUN export, analyse externe, import strict, feu tricolore." />
+  <meta name="apple-mobile-web-app-title" content="ASICS" />
+  <meta name="application-name" content="ASICS" />
+  <title>ASICS V16</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #131920;
+      --card2: #1a2230;
+      --text: #f0f4fa;
+      --muted: #8a9ab0;
+      --border: #252f3d;
+      --accent: #5b9aff;
+      --green: #2ecc71;
+      --orange: #f5a623;
+      --red: #ff4d6d;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body { padding-bottom: 84px; }
+    ::-webkit-scrollbar { display: none; }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    .app { max-width: 430px; margin: 0 auto; padding: 0 0 24px; }
+    .hdr {
+      padding: 28px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      background: rgba(11,15,20,.96);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+    }
+    .hdr-t { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+    .hdr-v { font-size: 9px; color: var(--muted); letter-spacing: 3px; }
+    .hdr-d { margin-left: auto; font-size: 10px; color: var(--muted); }
+    .mode-badge {
+      margin-left: 6px;
+      font-size: 8px;
+      letter-spacing: 2px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(91,154,255,.3);
+      color: var(--accent);
+      background: rgba(91,154,255,.08);
+    }
+
+    .section { padding: 20px; border-bottom: 1px solid var(--border); }
+    .section-lbl { font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+    .hero { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; line-height: 1.35; margin-bottom: 10px; }
+    .muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .italic { color: var(--muted); font-style: italic; font-size: 12px; line-height: 1.7; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mini { background: #111822; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+    .mini-k { font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 5px; }
+    .mini-v { font-size: 13px; font-weight: 600; line-height: 1.4; }
+
+    .feu-badge { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 10px; border: 1px solid; margin-bottom: 12px; }
+    .feu-dot { width: 10px; height: 10px; border-radius: 50%; animation: blink 2s infinite; flex-shrink: 0; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .feu-main { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+    .feu-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    .pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .pill { padding: 5px 10px; border-radius: 999px; background: #111822; border: 1px solid var(--border); font-size: 10px; color: var(--muted); }
+
+    .future-item { padding: 14px 0; border-bottom: 1px solid #1a2230; }
+    .future-item:last-child { border-bottom: none; }
+    .future-type { font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+    .future-text { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+
+    .txt-inp, .num-inp {
+      width: 100%;
+      background: #111822;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      border-radius: 10px;
+      outline: none;
+    }
+    .txt-inp { font-size: 14px; padding: 14px; resize: none; line-height: 1.6; min-height: 96px; }
+    .num-inp { font-size: 32px; padding: 14px 16px; letter-spacing: 1px; }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-choice {
+      flex: 1; min-width: 80px; padding: 14px 10px; background: #111822; border: 1px solid var(--border);
+      color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: 10px; cursor: pointer;
+      text-align: center; line-height: 1.3; transition: all .12s;
+    }
+    .btn-choice.sel { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+    .btn-choice.sel-o { background: #1a1500; border-color: var(--orange); color: var(--orange); }
+    .btn-choice.sel-r { background: #1a0010; border-color: var(--red); color: var(--red); }
+
+    .scale-row { display: flex; gap: 8px; }
+    .scale-btn {
+      flex: 1; padding: 16px 4px; background: #111822; border: 1px solid var(--border);
+      color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 16px; border-radius: 10px; cursor: pointer;
+      text-align: center; transition: all .12s;
+    }
+    .scale-btn.sel { background: #1a1a2a; border-color: var(--accent); color: var(--text); }
+
+    .cb-list { display: flex; flex-direction: column; gap: 8px; }
+    .cb-item {
+      display: flex; align-items: center; gap: 12px; padding: 14px; background: #111822; border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; transition: all .12s;
+    }
+    .cb-item.sel { background: #0d1a0d; border-color: rgba(46,204,113,.3); }
+    .cb-mark {
+      width: 16px; height: 16px; border: 1px solid #2a3542; border-radius: 3px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent;
+    }
+    .cb-item.sel .cb-mark { border-color: var(--green); color: var(--green); background: rgba(46,204,113,.1); }
+    .cb-label { font-size: 13px; }
+
+    .drop-zone {
+      margin-top: 12px;
+      border: 1px dashed rgba(91,154,255,.35);
+      background: rgba(91,154,255,.07);
+      border-radius: 14px;
+      padding: 18px 14px;
+      text-align: center;
+      transition: .15s ease;
+    }
+    .drop-zone.active {
+      border-color: rgba(46,204,113,.55);
+      background: rgba(46,204,113,.08);
+    }
+
+    .ctaw { padding: 20px; }
+    .cta {
+      width: 100%; padding: 16px; background: var(--text); color: var(--bg); border: none;
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+      cursor: pointer; border-radius: 10px; display: block; margin-top: 8px;
+    }
+    .cta:disabled { opacity: .25; cursor: not-allowed; }
+    .cta-sec { background: #111822; color: var(--text); border: 1px solid var(--border); }
+    .cta-soft { background: rgba(91,154,255,.1); color: #d9e9ff; border: 1px solid rgba(91,154,255,.3); }
+    .cta-danger { background: rgba(255,77,109,.1); color: #ffd0dc; border: 1px solid rgba(255,77,109,.3); }
+
+    .err, .ok, .info {
+      margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-size: 11px; line-height: 1.5;
+    }
+    .err { background: rgba(255,77,109,.1); color: #ffd0dc; border: 1px solid rgba(255,77,109,.3); }
+    .ok { background: rgba(46,204,113,.1); color: #ccf9de; border: 1px solid rgba(46,204,113,.3); }
+    .info { background: rgba(91,154,255,.1); color: #d9e9ff; border: 1px solid rgba(91,154,255,.3); }
+
+    .stats-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .stat-block { flex-shrink: 0; background: #111822; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; min-width: 130px; }
+    .stat-title { font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+    .stat-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; gap: 10px; }
+    .stat-row span:first-child { color: var(--muted); }
+
+    .hist-item { padding: 12px 0; border-bottom: 1px solid #1a2230; }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-date { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+    .hist-main { font-size: 12px; margin-bottom: 4px; }
+    .hist-sub { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    .nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px;
+      background: var(--bg); border-top: 1px solid var(--border); display: flex; z-index: 20;
+    }
+    .nb {
+      flex: 1; padding: 12px 8px; background: none; border: none; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .nb.on { color: var(--text); }
+    .nb-icon { font-size: 15px; }
+  </style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const APP_VERSION = "16.0.0";
+const RULESET_VERSION = "asics-v16-github";
+const STORAGE_KEYS = { journal:"asics_v16_journal", prompt:"asics_v16_prompt" };
+const MAX_OPEN_CHARS = 800;
+
+const OPEN_QUESTIONS = [
+  "Qu'est-ce qui veut avancer aujourd'hui ?",
+  "Qu'est-ce qui demande un peu d'espace ?",
+  "Qu'est-ce qui résiste encore ?",
+  "Qu'est-ce qui pourrait devenir plus simple aujourd'hui ?",
+  "Qu'est-ce qui te tire vers l'avant aujourd'hui ?"
+];
+const SPORT_TYPES = [
+  { id:"marche", label:"Marche" },
+  { id:"course_natation", label:"Course / natation" },
+  { id:"sport_salle", label:"Sport collectif / salle" },
+  { id:"boxe_muay_thai", label:"Boxe / Muay Thai" },
+  { id:"rpm_velo", label:"RPM / vélo" },
+  { id:"mobilite", label:"Mobilité" },
+  { id:"autre", label:"Autre" }
+];
+const SPORT_DURATIONS = [
+  { id:1, label:"45–59 min" },
+  { id:2, label:"60–89 min" },
+  { id:3, label:"90 min ou +" }
+];
+
+const DEFAULT_PROMPT = `PROMPT CANONIQUE — ANALYSE ASICS V16
+
+Déclencheurs :
+Analyse Asics
+Asics V12
+Asics V13
+Asics V14
+Asics V15
+Asics V16
+Analyse run
+
+Flux obligatoire :
+1. Demander le fichier RUN ASICS à analyser.
+2. Lire import_contract.expected_run_id.
+3. Si expected_run_id est absent, vide ou ambigu : STOP et demander un nouveau RUN valide.
+4. Générer uniquement un fichier JSON téléchargeable.
+5. run_id du résultat = exactement import_contract.expected_run_id.
+6. Ne jamais produire un résultat partiel.
+
+Structure obligatoire :
+{
+  "result_type": "asics_analysis_result",
+  "run_id": "<expected_run_id>",
+  "analysis": {
+    "feu_de_synthese": {
+      "couleur": "",
+      "niveau": ""
+    },
+    "lecture_froide": {
+      "tension_dominante": "",
+      "pente": "",
+      "risque": "",
+      "signal_faible": ""
+    },
+    "carte_des_futurs": {
+      "continuite": "",
+      "bifurcation": "",
+      "enfermement": ""
+    },
+    "geste_du_jour": ""
+  }
+}
+
+Règles absolues :
+- result_type doit être exactement "asics_analysis_result"
+- run_id = import_contract.expected_run_id
+- analysis complet obligatoire
+- si un bloc manque : STOP
+- générer uniquement le fichier JSON téléchargeable`;
+
+const state = {
+  view:"run", step:0, flow:[],
+  sleepHours:null, ateAtNight:null, hungerIntensity:null, hungerControl:null, hungerAppeasement:null,
+  didSport:null, sportType:null, sportDuration:null, loops:null, anchor:null, weight:null,
+  open1:"", open2:"", currentQuestion:"",
+  signals:{}, cockpit:{}, synthesisFire:"", trajectory:"",
+  pendingRunExport:null, analysisResult:null, importedFire:null,
+  runId:"", gestureUser:"", gestureType:"",
+  error:"", info:""
+};
+
+const app = document.getElementById("app");
+
+function isSunday(){ return new Date().getDay()===0; }
+function todayLabel(){ return new Date().toLocaleDateString("fr-FR",{weekday:"short", day:"numeric", month:"short"}); }
+function err(msg){ state.error = msg || ""; }
+function info(msg){ state.info = msg || ""; }
+function clearMsg(){ state.error=""; state.info=""; }
+function renderMsg(){
+  const parts = [];
+  if(state.info) parts.push(`<div class="ok">${esc(state.info)}</div>`);
+  if(state.error) parts.push(`<div class="err">${esc(state.error)}</div>`);
+  return parts.join("");
+}
+function buildFlow(){
+  const flow=["sleep","night"];
+  if(state.ateAtNight===true) flow.push("hungerI","hungerC","hungerA");
+  flow.push("sport");
+  if(state.didSport===true) flow.push("sportType","sportDuration");
+  flow.push("loops","anchor");
+  if(isSunday()) flow.push("weight");
+  flow.push("open1");
+  if(state.open1 && countWords(state.open1)<=3) flow.push("open2");
+  flow.push("prepareExport","awaitImport");
+  state.flow = flow;
+  return flow;
+}
+function getCurrentStepKey(){ const flow = buildFlow(); return flow[state.step] || "awaitImport"; }
+function stepIndexLabel(){
+  const key = getCurrentStepKey();
+  const flow = buildFlow().filter(k => !["prepareExport","awaitImport"].includes(k));
+  const visualIndex = Math.max(1, flow.indexOf(key)+1);
+  return `Q${visualIndex} / ${flow.length}`;
+}
+function render(content){
+  app.innerHTML = `
+    <div class="hdr">
+      <div class="hdr-t">ASICS</div>
+      <div class="hdr-v">V16</div>
+      <div class="mode-badge">GITHUB READY</div>
+      <div class="hdr-d">${todayLabel()}</div>
+    </div>
+    ${content}
+    ${renderNav()}
+  `;
+}
+function renderNav(){
+  const runOn = state.view==="run" || state.view==="result";
+  return `
+    <div class="nav">
+      <button class="nb ${runOn ? "on" : ""}" onclick="navTo('run')"><span class="nb-icon">◎</span>RUN</button>
+      <button class="nb ${state.view==="hist" ? "on" : ""}" onclick="navTo('hist')"><span class="nb-icon">▤</span>LOG</button>
+      <button class="nb ${state.view==="cfg" ? "on" : ""}" onclick="navTo('cfg')"><span class="nb-icon">⇅</span>FLOW</button>
+    </div>`;
+}
+function navTo(v){ state.view = v==="run" ? (state.analysisResult ? "result":"run") : v; dispatch(); }
+function dispatch(){
+  switch(state.view){
+    case "run": return renderRun();
+    case "result": return renderResult();
+    case "hist": return renderHist();
+    case "cfg": return renderCfg();
+    default: return renderRun();
+  }
+}
+function next(){ state.step += 1; renderRun(); }
+function prev(){ state.step = Math.max(0, state.step-1); renderRun(); }
+function qWrap(title, inner, backAction="prev()", nextHtml=""){
+  render(`
+    <div class="section">
+      <div class="section-lbl">${stepIndexLabel()}</div>
+      <div class="hero">${title}</div>
+      ${inner}
+      ${renderMsg()}
+    </div>
+    <div class="ctaw">
+      ${state.step>0 ? `<button class="cta cta-sec" onclick="${backAction}">← Retour</button>` : ""}
+      ${nextHtml}
+    </div>`);
+}
+function renderRun(){
+  state.view="run";
+  switch(getCurrentStepKey()){
+    case "sleep": return qSleep();
+    case "night": return qNight();
+    case "hungerI": return qHungerI();
+    case "hungerC": return qHungerC();
+    case "hungerA": return qHungerA();
+    case "sport": return qSport();
+    case "sportType": return qSportType();
+    case "sportDuration": return qSportDuration();
+    case "loops": return qLoops();
+    case "anchor": return qAnchor();
+    case "weight": return qWeight();
+    case "open1": return qOpen1();
+    case "open2": return qOpen2();
+    case "prepareExport": return renderPrepareExport();
+    default: return renderAwaitImport();
+  }
+}
+function qSleep(){
+  qWrap("Combien d'heures as-tu dormi ?",
+    `<input class="num-inp" id="slp" type="number" step="0.5" min="0" max="24" placeholder="7.5" value="${state.sleepHours ?? ""}" />`,
+    "prev()", `<button class="cta" onclick="saveSleep()">Suivant →</button>`);
+  document.getElementById("slp")?.addEventListener("input", e => state.sleepHours = parseFloat(e.target.value) || null);
+}
+function saveSleep(){ clearMsg(); const v=parseFloat(document.getElementById("slp")?.value); if(Number.isNaN(v)||v<0||v>24){ err("Valeur invalide."); return qSleep(); } state.sleepHours=v; next(); }
+function qNight(){
+  qWrap("As-tu mangé cette nuit ?",
+    `<div class="btn-row">
+      <button class="btn-choice ${state.ateAtNight===false?"sel":""}" onclick="saveNight(false)">Non</button>
+      <button class="btn-choice ${state.ateAtNight===true?"sel-o":""}" onclick="saveNight(true)">Oui</button>
+    </div>`);
+}
+function saveNight(v){ clearMsg(); state.ateAtNight=v; if(!v){ state.hungerIntensity=0; state.hungerControl=0; state.hungerAppeasement=0; } next(); }
+function qHungerI(){
+  qWrap("Intensité de la faim cette nuit",
+    `<div class="muted">0 = nulle — 3 = forte</div>
+     <div class="scale-row" style="margin-top:16px">
+       ${[0,1,2,3].map(n=>`<button class="scale-btn ${state.hungerIntensity===n?"sel":""}" onclick="state.hungerIntensity=${n};qHungerI()">${n}</button>`).join("")}
+     </div>`,
+    "prev()", `<button class="cta" onclick="saveSimpleField('hungerIntensity','qHungerI')" ${state.hungerIntensity===null?"disabled":""}>Suivant →</button>`);
+}
+function qHungerC(){
+  qWrap("Contrôle sur la prise alimentaire",
+    `<div class="muted">0 = total — 3 = aucun</div>
+     <div class="scale-row" style="margin-top:16px">
+       ${[0,1,2,3].map(n=>`<button class="scale-btn ${state.hungerControl===n?"sel":""}" onclick="state.hungerControl=${n};qHungerC()">${n}</button>`).join("")}
+     </div>`,
+    "prev()", `<button class="cta" onclick="saveSimpleField('hungerControl','qHungerC')" ${state.hungerControl===null?"disabled":""}>Suivant →</button>`);
+}
+function qHungerA(){
+  qWrap("Niveau d'apaisement après la prise",
+    `<div class="muted">0 = aucun — 3 = complet</div>
+     <div class="scale-row" style="margin-top:16px">
+       ${[0,1,2,3].map(n=>`<button class="scale-btn ${state.hungerAppeasement===n?"sel":""}" onclick="state.hungerAppeasement=${n};qHungerA()">${n}</button>`).join("")}
+     </div>`,
+    "prev()", `<button class="cta" onclick="saveSimpleField('hungerAppeasement','qHungerA')" ${state.hungerAppeasement===null?"disabled":""}>Suivant →</button>`);
+}
+function saveSimpleField(field, rerender){ clearMsg(); if(state[field]===null||state[field]===undefined){ err("Choisis une valeur."); return window[rerender](); } next(); }
+function qSport(){
+  qWrap("As-tu fait une activité physique de 45 min ou plus hier ?",
+    `<div class="btn-row">
+      <button class="btn-choice ${state.didSport===false?"sel":""}" onclick="saveSport(false)">Non</button>
+      <button class="btn-choice ${state.didSport===true?"sel":""}" onclick="saveSport(true)">Oui</button>
+    </div>`);
+}
+function saveSport(v){ clearMsg(); state.didSport=v; if(!v){ state.sportType=null; state.sportDuration=0; } next(); }
+function qSportType(){
+  qWrap("Quel type d'activité physique ?",
+    `<div class="cb-list">
+      ${SPORT_TYPES.map(s=>`<div class="cb-item ${state.sportType===s.id?"sel":""}" onclick="state.sportType='${s.id}';qSportType()"><div class="cb-mark">${state.sportType===s.id?"✓":""}</div><div class="cb-label">${s.label}</div></div>`).join("")}
+    </div>`,
+    "prev()", `<button class="cta" onclick="saveSportType()" ${!state.sportType?"disabled":""}>Suivant →</button>`);
+}
+function saveSportType(){ clearMsg(); if(!state.sportType){ err("Choisis un type."); return qSportType(); } next(); }
+function qSportDuration(){
+  qWrap("Combien de temps environ ?",
+    `<div class="cb-list">
+      ${SPORT_DURATIONS.map(s=>`<div class="cb-item ${state.sportDuration===s.id?"sel":""}" onclick="state.sportDuration=${s.id};qSportDuration()"><div class="cb-mark">${state.sportDuration===s.id?"✓":""}</div><div class="cb-label">${s.label}</div></div>`).join("")}
+    </div>`,
+    "prev()", `<button class="cta" onclick="saveSimpleField('sportDuration','qSportDuration')" ${state.sportDuration===null?"disabled":""}>Suivant →</button>`);
+}
+function qLoops(){
+  qWrap("Hier soir, étais-tu dans des boucles mentales ?",
+    `<div class="btn-row">
+      <button class="btn-choice ${state.loops===0?"sel":""}" onclick="saveLoops(0)">0 — non</button>
+      <button class="btn-choice ${state.loops===1?"sel-o":""}" onclick="saveLoops(1)">1 — un peu</button>
+      <button class="btn-choice ${state.loops===2?"sel-r":""}" onclick="saveLoops(2)">2 — fort</button>
+    </div>`);
+}
+function saveLoops(v){ clearMsg(); state.loops=v; next(); }
+function qAnchor(){
+  qWrap("As-tu eu un ancrage simple hier ?",
+    `<div class="btn-row">
+      <button class="btn-choice ${state.anchor===false?"sel":""}" onclick="saveAnchor(false)">Non</button>
+      <button class="btn-choice ${state.anchor===true?"sel":""}" onclick="saveAnchor(true)">Oui</button>
+    </div>
+    <div class="muted">Jeu · présence · rire · musique · lecture — ne comptent pas : news, scroll, podcast</div>`);
+}
+function saveAnchor(v){ clearMsg(); state.anchor=v; next(); }
+function qWeight(){
+  qWrap("Quel est ton poids ce matin ?",
+    `<input class="num-inp" id="wgt" type="number" step="0.1" min="40" max="200" placeholder="93.5" value="${state.weight ?? ""}" />`,
+    "prev()", `<button class="cta" onclick="saveWeight()">Suivant →</button>`);
+  document.getElementById("wgt")?.addEventListener("input", e => state.weight = parseFloat(e.target.value) || null);
+}
+function saveWeight(){ clearMsg(); const raw=document.getElementById("wgt")?.value.trim(); if(!raw){ state.weight=null; return next(); } const v=parseFloat(raw); if(Number.isNaN(v)||v<40||v>250){ err("Poids invalide."); return qWeight(); } state.weight=v; next(); }
+function qOpen1(){
+  if(!state.currentQuestion){
+    const seed=new Date().toISOString().slice(0,10); let h=0;
+    for(let i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))%999999;
+    state.currentQuestion = OPEN_QUESTIONS[h % OPEN_QUESTIONS.length];
+  }
+  qWrap(esc(state.currentQuestion),
+    `<textarea class="txt-inp" id="op1" maxlength="${MAX_OPEN_CHARS}" placeholder="Quelques mots suffisent...">${esc(state.open1)}</textarea>
+     <div class="muted">Ta réponse sera exportée pour analyse. ${MAX_OPEN_CHARS} caractères max.</div>`,
+    "prev()", `<button class="cta" onclick="saveOpen1()">Préparer le fichier →</button>`);
+}
+function saveOpen1(){ clearMsg(); const t=sanitizeOpenText(document.getElementById("op1")?.value || ""); if(!t){ err("Écris au moins quelques mots."); return qOpen1(); } state.open1=t; buildFlow(); next(); }
+function qOpen2(){
+  qWrap("Peux-tu préciser un peu ?",
+    `<textarea class="txt-inp" id="op2" maxlength="${MAX_OPEN_CHARS}" placeholder="Ajoute une précision...">${esc(state.open2)}</textarea>`,
+    "prev()", `<button class="cta" onclick="saveOpen2()">Préparer le fichier →</button>`);
+}
+function saveOpen2(){ clearMsg(); state.open2=sanitizeOpenText(document.getElementById("op2")?.value || ""); next(); }
+
+function computeSignalsAndExport(){
+  const j = getJournal();
+  const recent = j.slice(-30);
+  const sleepStatus = state.sleepHours >= 8 ? "green" : state.sleepHours >= 7 ? "orange" : "red";
+  const hungerStress = state.ateAtNight ? (Number(state.hungerIntensity || 0) + Number(state.hungerControl || 0)) : 0;
+  const hungerStatus = !state.ateAtNight ? "green" : hungerStress >= 4 ? "red" : "orange";
+  const loopStatus = state.loops===0 ? "green" : state.loops===1 ? "orange" : "red";
+  const anchorStatus = state.anchor ? "green" : "orange";
+  let apLevel = 0; if(state.didSport) apLevel = Number(state.sportDuration || 1);
+  const prevAnchors = j.slice(-3).map(e=>e.anchor);
+  const latentAnchor = !state.anchor && prevAnchors.filter(v=>v===false).length >= 2;
+  const physCap = sleepStatus==="green" && loopStatus==="green" && !state.ateAtNight ? "HIGH" : sleepStatus==="red" || loopStatus==="red" || hungerStatus==="red" ? "LOW" : "MEDIUM";
+  const intTension = loopStatus==="red" || hungerStatus==="red" ? "HIGH" : loopStatus==="orange" || hungerStatus==="orange" || latentAnchor ? "MEDIUM" : "LOW";
+  const realExposure = physCap==="LOW" && intTension==="HIGH" ? "HIGH" : physCap==="HIGH" && intTension==="LOW" ? "LOW" : "MEDIUM";
+  const synthesisFire = sleepStatus==="red" || loopStatus==="red" || hungerStatus==="red" ? "RED" : sleepStatus==="orange" || loopStatus==="orange" || hungerStatus==="orange" ? "ORANGE" : "GREEN";
+  const last7 = recent.slice(-6).map(e=>e.synthesisFire).concat(synthesisFire);
+  const redCnt = last7.filter(v=>v==="RED").length;
+  const orCnt = last7.filter(v=>v==="ORANGE").length;
+  const trajectory = redCnt>=2 ? "ENFERMEMENT SILENCIEUX" : redCnt>=1 || orCnt>=4 ? "SOUS TENSION" : "STABLE";
+
+  state.signals = { sleepStatus, hungerStress, hungerStatus, apLevel, loopStatus, anchorStatus, latentAnchor, noStructuringDecision: state.loops===2 };
+  state.cockpit = { physCap, intTension, realExposure };
+  state.synthesisFire = synthesisFire;
+  state.trajectory = trajectory;
+  state.runId = buildRunId();
+
+  state.pendingRunExport = {
+    type:"asics_run_export",
+    app_version:APP_VERSION,
+    ruleset_version:RULESET_VERSION,
+    exported_at:new Date().toISOString(),
+    run_id:state.runId,
+    date:new Date().toISOString().slice(0,10),
+    inputs:{
+      sleepHours:state.sleepHours, ateAtNight:state.ateAtNight, hungerIntensity:state.hungerIntensity, hungerControl:state.hungerControl,
+      hungerAppeasement:state.hungerAppeasement, didSport:state.didSport, sportType:state.sportType, sportDuration:state.sportDuration,
+      loops:state.loops, anchor:state.anchor, weight:state.weight, currentQuestion:state.currentQuestion, open1:state.open1, open2:state.open2
+    },
+    signals:state.signals,
+    cockpit:state.cockpit,
+    synthesisFire:state.synthesisFire,
+    trajectory:state.trajectory,
+    history:getHistoryForExport(7),
+    import_contract:{
+      expected_result_type:"asics_analysis_result",
+      expected_run_id:state.runId,
+      target_app:"ASICS V16 HTML"
+    }
+  };
+}
+function renderPrepareExport(){
+  clearMsg();
+  computeSignalsAndExport();
+  render(`
+    <div class="section">
+      <div class="section-lbl">Run terminé</div>
+      <div class="hero">Fichier RUN prêt</div>
+      <div class="info">Aucun feu ni résultat n'est affiché avant ingestion du fichier d'analyse ChatGPT.</div>
+      <div class="pill-row">
+        <div class="pill">Run ID : ${esc(state.runId)}</div>
+        <div class="pill">Export prêt</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-lbl">Étape 1</div>
+      <div class="muted">Exporte le fichier RUN, envoie-le dans ChatGPT avec le prompt canonique, puis importe le fichier résultat dans l'app.</div>
+      <div class="ctaw" style="padding:16px 0 0">
+        <button class="cta" onclick="downloadRunExport()">Exporter RUN.json</button>
+        <button class="cta cta-soft" onclick="copyPromptText()">Copier le prompt</button>
+        <button class="cta cta-sec" onclick="gotoAwaitImport()">J'ai mon fichier résultat →</button>
+      </div>
+      ${renderMsg()}
+    </div>
+    <div class="section">
+      <div class="section-lbl">Prompt à utiliser</div>
+      <div class="muted">${esc(getPromptText())}</div>
+    </div>`);
+}
+function gotoAwaitImport(){ const idx=buildFlow().indexOf("awaitImport"); state.step = idx>=0 ? idx : state.step; renderRun(); }
+function getExpectedRunId(){ return state.pendingRunExport?.import_contract?.expected_run_id || state.pendingRunExport?.run_id || state.runId || ""; }
+function renderAwaitImport(){
+  render(`
+    <div class="section">
+      <div class="section-lbl">Attente analyse</div>
+      <div class="hero">Importer ASICS_RESULT.json</div>
+      <div class="info">Le cockpit apparaîtra après ingestion d'un fichier résultat valide.</div>
+      <div class="pill-row">
+        <div class="pill">Run ID attendu : ${esc(getExpectedRunId() || "-")}</div>
+        <div class="pill">Statut : attente</div>
+      </div>
+      <div class="drop-zone" id="dropZone">
+        <div class="muted"><b>Drag & drop</b> du fichier résultat ici<br>ou utilise le bouton d'import juste dessous.</div>
+      </div>
+      <div class="ctaw" style="padding:16px 0 0">
+        <input id="importResultInput" type="file" accept="application/json,.json" style="display:none" onchange="handleResultImport(event)" />
+        <button class="cta" onclick="document.getElementById('importResultInput').click()">Importer le fichier résultat</button>
+        <button class="cta cta-sec" onclick="downloadRunExport()">Réexporter RUN.json</button>
+        <button class="cta cta-soft" onclick="copyPromptText()">Recopier le prompt</button>
+      </div>
+      ${renderMsg()}
+    </div>
+    <div class="section">
+      <div class="section-lbl">Rappel</div>
+      <div class="muted">1. Exporte RUN.json<br>2. Dans ChatGPT : « Analyse Asics »<br>3. Attache RUN.json<br>4. Télécharge ASICS_RESULT.json<br>5. Importe-le ici</div>
+    </div>`);
+  mountDropZone();
+}
+function validateAsicsResult(result, expectedRunId){
+  if (!result) return "Fichier vide";
+  if (result.result_type !== "asics_analysis_result") return "result_type invalide";
+  if (result.run_id !== expectedRunId) return "run_id incorrect";
+  if (!result.analysis) return "analysis manquant";
+
+  const a = result.analysis;
+  if (!a.feu_de_synthese) return "feu_de_synthese manquant";
+  if (!a.lecture_froide) return "lecture_froide manquant";
+  if (!a.carte_des_futurs) return "carte_des_futurs manquant";
+  if (!a.geste_du_jour) return "geste_du_jour manquant";
+
+  const lf = a.lecture_froide;
+  for (const k of ["tension_dominante","pente","risque","signal_faible"]) {
+    if (!lf[k]) return `lecture_froide.${k} manquant`;
+  }
+
+  const f = a.carte_des_futurs;
+  if (!f.continuite || !f.bifurcation || !f.enfermement) return "structure carte_des_futurs invalide";
+
+  return null;
+}
+function tryAutoRepairResult(result, expectedRunId){
+  if (!result || typeof result !== "object") return result;
+  const fixed = JSON.parse(JSON.stringify(result));
+
+  if (!fixed.result_type && fixed.type === "asics_analysis_result") fixed.result_type = fixed.type;
+  if (!fixed.result_type && fixed.resultType === "asics_analysis_result") fixed.result_type = fixed.resultType;
+
+  if (!fixed.run_id && fixed.runId) fixed.run_id = fixed.runId;
+
+  if (!fixed.analysis && fixed.result) fixed.analysis = fixed.result;
+  if (!fixed.analysis && fixed.data && typeof fixed.data === "object") fixed.analysis = fixed.data;
+
+  if (fixed.analysis && !fixed.analysis.carte_des_futurs && fixed.analysis.futurs) {
+    fixed.analysis.carte_des_futurs = {
+      continuite: fixed.analysis.futurs.continuite || fixed.analysis.futurs.continuity || "",
+      bifurcation: fixed.analysis.futurs.bifurcation || "",
+      enfermement: fixed.analysis.futurs.enfermement || fixed.analysis.futurs.enclosure || ""
+    };
+  }
+
+  if (fixed.analysis && !fixed.analysis.geste_du_jour && fixed.analysis.gesture) {
+    fixed.analysis.geste_du_jour = fixed.analysis.gesture;
+  }
+
+  if (fixed.analysis && fixed.analysis.feu_de_synthese && typeof fixed.analysis.feu_de_synthese === "string") {
+    fixed.analysis.feu_de_synthese = { couleur: fixed.analysis.feu_de_synthese, niveau: fixed.analysis.feu_de_synthese };
+  }
+
+  if (fixed.run_id !== expectedRunId) return fixed; 
+  return fixed;
+}
+async function handleResultImport(event){
+  clearMsg();
+  const file = event.target.files?.[0];
+  if(!file) return;
+  await importResultFromFile(file);
+  if(event.target) event.target.value="";
+}
+async function importResultFromFile(file){
+  try{
+    let parsed = JSON.parse(await file.text());
+    const expectedRunId = getExpectedRunId();
+    if(!expectedRunId) throw new Error("run_id attendu introuvable côté app");
+
+    let validationError = validateAsicsResult(parsed, expectedRunId);
+    if (validationError) {
+      parsed = tryAutoRepairResult(parsed, expectedRunId);
+      validationError = validateAsicsResult(parsed, expectedRunId);
+    }
+    if (validationError) throw new Error(validationError);
+
+    state.analysisResult = parsed;
+    state.importedFire = normalizeImportedFire(parsed.analysis.feu_de_synthese, state.synthesisFire);
+    state.gestureUser = parsed.analysis.geste_du_jour || "";
+    saveJournalWithAnalysis();
+    info("Analyse importée avec succès.");
+    state.view = "result";
+    renderResult();
+  } catch(e){
+    err(`Import impossible — ${normalizeError(e)}`);
+    renderAwaitImport();
+  }
+}
+function mountDropZone(){
+  const zone = document.getElementById("dropZone");
+  if(!zone) return;
+  const on = () => zone.classList.add("active");
+  const off = () => zone.classList.remove("active");
+  ["dragenter","dragover"].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); on(); }));
+  ["dragleave","drop"].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); off(); }));
+  zone.addEventListener("drop", async e => {
+    const file = e.dataTransfer?.files?.[0];
+    if(file) await importResultFromFile(file);
+  });
+}
+function normalizeImportedFire(fire, fallbackCode){
+  const codeToMeta = (code) => {
+    const c = String(code || fallbackCode || "ORANGE").toUpperCase();
+    if(c==="GREEN" || c==="VERT") return { code:"GREEN", label:"AVANCE", couleur:"green", sous_texte:"Porteur opérationnel" };
+    if(c==="RED" || c==="ROUGE") return { code:"RED", label:"STOP", couleur:"red", sous_texte:"Porteur indisponible" };
+    return { code:"ORANGE", label:"RALENTIS", couleur:"orange", sous_texte:"Lecture prudente" };
+  };
+  if(typeof fire==="string") return codeToMeta(fire);
+  if(fire && typeof fire==="object"){
+    const base = codeToMeta(fire.code || fire.couleur || fire.niveau || fire.label || fallbackCode);
+    return {
+      code: base.code,
+      label: typeof fire.label==="string" && fire.label.trim() ? fire.label.trim() : base.label,
+      couleur: typeof fire.couleur==="string" && fire.couleur.trim() ? fire.couleur.trim().toLowerCase() : base.couleur,
+      sous_texte: typeof fire.sous_texte==="string" && fire.sous_texte.trim() ? fire.sous_texte.trim() : base.sous_texte
+    };
+  }
+  return codeToMeta(fallbackCode || "ORANGE");
+}
+function fireColorValue(fireObj){
+  const c = (fireObj?.couleur || "").toLowerCase();
+  if(c==="green" || c==="vert") return "var(--green)";
+  if(c==="red" || c==="rouge") return "var(--red)";
+  return "var(--orange)";
+}
+function renderResult(){
+  if(!state.analysisResult) return renderAwaitImport();
+  state.view = "result";
+  const a = state.analysisResult.analysis || {};
+  const lf = a.lecture_froide || {};
+  const cf = a.carte_des_futurs || {};
+  const fire = state.importedFire || normalizeImportedFire(a.feu_de_synthese, state.synthesisFire);
+  const fireColor = fireColorValue(fire);
+  render(`
+    <div class="section">
+      <div class="section-lbl">Question du jour</div>
+      <div class="hero">${esc(state.currentQuestion)}</div>
+      ${state.open1 ? `<div class="italic">"${esc(state.open1)}"</div>` : ""}
+      ${state.open2 ? `<div class="italic" style="margin-top:8px">"${esc(state.open2)}"</div>` : ""}
+    </div>
+    <div class="section">
+      <div class="section-lbl">Feu de synthèse</div>
+      <div class="feu-badge" style="border-color:${fireColor}44;background:${fireColor}0d">
+        <div class="feu-dot" style="background:${fireColor}"></div>
+        <div>
+          <div class="feu-main" style="color:${fireColor}">${esc(fire.label)}</div>
+          <div class="feu-sub">${esc(fire.sous_texte)}</div>
+        </div>
+      </div>
+      <div class="pill-row">
+        <div class="pill">Code ${esc(fire.code)}</div>
+        <div class="pill">Run ID ${esc(state.analysisResult.run_id || "-")}</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-lbl">Lecture froide</div>
+      <div class="grid2">
+        <div class="mini"><div class="mini-k">Tension dominante</div><div class="mini-v">${esc(lf.tension_dominante || "")}</div></div>
+        <div class="mini"><div class="mini-k">Pente</div><div class="mini-v">${esc(lf.pente || "")}</div></div>
+        <div class="mini"><div class="mini-k">Risque</div><div class="mini-v">${esc(lf.risque || "")}</div></div>
+        <div class="mini"><div class="mini-k">Signal faible</div><div class="mini-v">${esc(lf.signal_faible || "")}</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-lbl">Carte des futurs</div>
+      <div class="future-item"><div class="future-type">➡️ Continuité</div><div class="future-text">${esc(cf.continuite || "")}</div></div>
+      <div class="future-item"><div class="future-type">↗️ Bifurcation</div><div class="future-text">${esc(cf.bifurcation || "")}</div></div>
+      <div class="future-item"><div class="future-type">⛔ Enfermement</div><div class="future-text">${esc(cf.enfermement || "")}</div></div>
+    </div>
+    <div class="section">
+      <div class="section-lbl">Geste du jour</div>
+      <textarea class="txt-inp" id="gest">${esc(state.gestureUser || a.geste_du_jour || "")}</textarea>
+      <div class="muted">Tu peux garder ou ajuster le geste avant archivage final.</div>
+      <div class="ctaw" style="padding:12px 0 0">
+        <button class="cta" onclick="saveGestureOnly('accepted')">Enregistrer le geste</button>
+        <button class="cta cta-sec" onclick="downloadImportedResult()">Réexporter le résultat</button>
+      </div>
+      ${renderMsg()}
+    </div>
+    ${analyticsBlock()}
+    <div class="section" style="border:none"><button class="cta" onclick="newRun()">Nouveau run</button></div>`);
+}
+function saveGestureOnly(type){
+  clearMsg();
+  const t = sanitizeOpenText(document.getElementById("gest")?.value || "");
+  if(!t){ err("Renseigne un geste."); return renderResult(); }
+  state.gestureUser = t;
+  state.gestureType = type;
+  const journal = getJournal();
+  const idx = journal.findIndex(e=>e.run_id===state.runId);
+  if(idx>=0){
+    journal[idx].gestureUser = t;
+    journal[idx].gestureType = type;
+    journal[idx].analysis = state.analysisResult;
+    journal[idx].importedFire = state.importedFire;
+    localStorage.setItem(STORAGE_KEYS.journal, JSON.stringify(journal));
+  }
+  info("Geste enregistré.");
+  renderResult();
+}
+function analyticsBlock(){
+  const j = getJournal();
+  return `
+    <div class="section">
+      <div class="section-lbl">Vue 7 / 14 / 30 jours</div>
+      <div class="stats-row">
+        ${[7,14,30].map(d => {
+          const s = stats(j,d);
+          return `<div class="stat-block">
+            <div class="stat-title">${d} jours</div>
+            <div class="stat-row"><span>Feux</span><span>🟢${s.g} 🟠${s.o} 🔴${s.r}</span></div>
+            <div class="stat-row"><span>Sommeil</span><span>${s.sleep}</span></div>
+            <div class="stat-row"><span>Nuits repas</span><span>${s.night}</span></div>
+            <div class="stat-row"><span>Sport</span><span>${s.sport}j</span></div>
+            <div class="stat-row"><span>BM 2</span><span>${s.loops2}</span></div>
+            <div class="stat-row"><span>Sans ancrage</span><span>${s.noAnch}</span></div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+function stats(j, days){
+  const sl = j.slice(-days);
+  if(!sl.length) return { g:0,o:0,r:0,sleep:"-",night:0,sport:0,loops2:0,noAnch:0 };
+  const sleeps = sl.map(e => Number(e.sleepHours)).filter(v => !Number.isNaN(v));
+  const avg = sleeps.length ? (sleeps.reduce((a,b)=>a+b,0)/sleeps.length).toFixed(1)+"h" : "-";
+  return {
+    g: sl.filter(e=>e.synthesisFire==="GREEN").length,
+    o: sl.filter(e=>e.synthesisFire==="ORANGE").length,
+    r: sl.filter(e=>e.synthesisFire==="RED").length,
+    sleep: avg,
+    night: sl.filter(e=>e.ateAtNight===true).length,
+    sport: sl.filter(e=>e.didSport===true).length,
+    loops2: sl.filter(e=>e.loops===2).length,
+    noAnch: sl.filter(e=>e.anchor===false).length
+  };
+}
+function renderHist(){
+  const j = getJournal().slice().reverse();
+  if(!j.length){
+    render(`<div class="section"><div class="section-lbl">Historique</div><div class="muted">Aucun run enregistré.</div></div>`);
+    return;
+  }
+  const items = j.map(item => {
+    const fire = item.importedFire ? normalizeImportedFire(item.importedFire, item.synthesisFire) : null;
+    return `<div class="hist-item">
+      <div class="hist-date">${fmtDate(item.date)}</div>
+      <div class="hist-main">Run ${esc(item.run_id || "-")}${fire ? ` · Feu ${esc(fire.code)}` : ""}</div>
+      <div class="hist-sub">Sommeil ${esc(String(item.sleepHours))}h · Nuit ${item.ateAtNight ? "oui":"non"} · Sport ${item.didSport ? "oui":"non"}</div>
+      <div class="hist-sub">Analyse ${item.analysis ? "importée":"absente"} · Geste ${item.gestureUser ? "oui":"non"}</div>
+      ${item.open1 ? `<div class="hist-sub">"${esc(trunc(item.open1,60))}"</div>` : ""}
+    </div>`;
+  }).join("");
+  render(`<div class="section"><div class="section-lbl">Historique — ${j.length} runs</div>${items}
+    <div class="ctaw" style="padding:16px 0 0"><button class="cta cta-danger" onclick="clearHist()">Effacer l'historique</button></div>
+  </div>${analyticsBlock()}`);
+}
+function clearHist(){ if(confirm("Effacer tout l'historique ?")){ localStorage.removeItem(STORAGE_KEYS.journal); renderHist(); } }
+function renderCfg(){
+  render(`
+    <div class="section">
+      <div class="section-lbl">Flux V16</div>
+      <div class="hero">Export RUN → ChatGPT → Import RESULT strict</div>
+      <div class="muted">GitHub-ready, drag & drop, auto-repair léger, validation stricte.</div>
+    </div>
+    <div class="section">
+      <div class="section-lbl">Prompt canonique</div>
+      <textarea class="txt-inp" id="promptInput">${esc(getPromptText())}</textarea>
+      <div class="ctaw" style="padding:12px 0 0">
+        <button class="cta" onclick="savePromptText()">Enregistrer le prompt</button>
+        <button class="cta cta-soft" onclick="copyPromptText()">Copier le prompt</button>
+      </div>
+      ${renderMsg()}
+    </div>`);
+}
+function savePromptText(){ clearMsg(); const value=document.getElementById("promptInput")?.value || DEFAULT_PROMPT; localStorage.setItem(STORAGE_KEYS.prompt, value.trim() || DEFAULT_PROMPT); info("Prompt enregistré."); renderCfg(); }
+function getPromptText(){ return localStorage.getItem(STORAGE_KEYS.prompt) || DEFAULT_PROMPT; }
+async function copyPromptText(){
+  clearMsg();
+  try { await navigator.clipboard.writeText(getPromptText()); info("Prompt copié."); }
+  catch { info("Copie non disponible. Sélectionne le texte manuellement."); }
+  dispatch();
+}
+function buildRunId(){
+  const d = new Date(), pad = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+}
+function getHistoryForExport(days=7){
+  return compressHistory(getJournal().slice(-days).map(entry => ({
+    date:entry.date, run_id:entry.run_id, synthesisFire:entry.synthesisFire, trajectory:entry.trajectory,
+    sleepHours:entry.sleepHours, ateAtNight:entry.ateAtNight, didSport:entry.didSport, loops:entry.loops,
+    anchor:entry.anchor, open1:entry.open1, analysisImported:Boolean(entry.analysis)
+  })));
+}
+function compressHistory(items){
+  return items.map(x => ({
+    date:x.date, run_id:x.run_id, fire:x.synthesisFire, tr:x.trajectory,
+    sl:x.sleepHours, night:x.ateAtNight, sport:x.didSport, loops:x.loops, anchor:x.anchor, open1:x.open1, imported:x.analysisImported
+  }));
+}
+function downloadRunExport(){
+  clearMsg();
+  if(!state.pendingRunExport){ err("Aucun fichier RUN prêt."); return dispatch(); }
+  downloadJson(`asics_run_${state.pendingRunExport.run_id}.json`, state.pendingRunExport);
+  info("RUN exporté.");
+  dispatch();
+}
+function downloadImportedResult(){ if(state.analysisResult) downloadJson(`ASICS_RESULT_${state.analysisResult.run_id}.json`, state.analysisResult); }
+function downloadJson(filename, data){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function saveJournalWithAnalysis(){
+  const journal = getJournal();
+  const entry = {
+    date:new Date().toISOString(), run_id:state.runId,
+    sleepHours:state.sleepHours, ateAtNight:state.ateAtNight, hungerIntensity:state.hungerIntensity, hungerControl:state.hungerControl,
+    hungerAppeasement:state.hungerAppeasement, didSport:state.didSport, sportType:state.sportType, sportDuration:state.sportDuration,
+    loops:state.loops, anchor:state.anchor, weight:state.weight, currentQuestion:state.currentQuestion, open1:state.open1, open2:state.open2,
+    signals:state.signals, cockpit:state.cockpit, synthesisFire:state.synthesisFire, trajectory:state.trajectory,
+    exportedRun:state.pendingRunExport, analysis:state.analysisResult, importedFire:state.importedFire,
+    gestureUser:state.gestureUser, gestureType:state.gestureType
+  };
+  const idx = journal.findIndex(e=>e.run_id===state.runId);
+  if(idx>=0) journal[idx] = { ...journal[idx], ...entry }; else journal.push(entry);
+  localStorage.setItem(STORAGE_KEYS.journal, JSON.stringify(journal));
+}
+function getJournal(){ try { const raw=JSON.parse(localStorage.getItem(STORAGE_KEYS.journal)||"[]"); return Array.isArray(raw) ? raw : []; } catch { return []; } }
+function countWords(t){ return t.trim().split(/\s+/).filter(Boolean).length; }
+function trunc(t,n){ return String(t).length>n ? String(t).slice(0,n-1)+"…" : String(t); }
+function fmtDate(iso){ try { return new Date(iso).toLocaleString("fr-FR"); } catch { return iso; } }
+function sanitizeOpenText(s){ return String(s||"").replace(/\u0000/g,"").replace(/\s+/g," ").trim().slice(0,MAX_OPEN_CHARS); }
+function normalizeError(e){ const m=String(e?.message || "erreur inconnue"); return m.length<=140 ? m : m.slice(0,137)+"…"; }
+function esc(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+function newRun(){
+  Object.assign(state, {
+    view:"run", step:0, flow:[],
+    sleepHours:null, ateAtNight:null, hungerIntensity:null, hungerControl:null, hungerAppeasement:null,
+    didSport:null, sportType:null, sportDuration:null, loops:null, anchor:null, weight:null,
+    open1:"", open2:"", currentQuestion:"",
+    signals:{}, cockpit:{}, synthesisFire:"", trajectory:"",
+    pendingRunExport:null, analysisResult:null, importedFire:null,
+    runId:"", gestureUser:"", gestureType:"",
+    error:"", info:""
+  });
+  dispatch();
+}
+dispatch();
+</script>
+</body>
+</html>
